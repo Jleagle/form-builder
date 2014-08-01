@@ -1,0 +1,13 @@
+{
+    "name": "jleagle/form-builder",
+    "description": "desc",
+    "license": "",
+    "authors": [
+        {
+            "name": "James Eagle",
+            "email": "jimeagle@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
