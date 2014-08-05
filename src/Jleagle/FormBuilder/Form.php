@@ -10,39 +10,86 @@ class Form
 
   private $_fields = [];
 
-  public function __constructor()
+  /**
+   *
+   */
+  public function __constructor($action = '')
   {
     $this->setAttribute('role', 'form');
+    $this->setAttribute('action', $action);
   }
 
 
+  /**
+   * @param string $type
+   * @param string $name
+   * @param mixed $default
+   * @param mixed $value
+   *
+   * @return $this
+   */
   public function addField($type, $name, $default = null, $value = null)
   {
-    $field = new Field();
+    $field = new Field($name);
     $field->setAttribute('type', $type);
-    $field->setAttribute('name', $name);
 
-    $this->_fields[] = $field;
+    if ($value){
+      $field->setValue($value);
+    }else{
+      $field->setValue($default);
+    }
+
+
+    $this->_fields[$name] = $field;
 
     return $this;
   }
 
+  /**
+   * @param string $name
+   * @param mixed $default
+   * @param mixed $value
+   *
+   * @return $this
+   */
   public function addTextField($name, $default = null, $value = null)
   {
-    $this->addField(Field::TEXT, $name, $default, $value);
+    $this->addField('text', $name, $default, $value);
     return $this;
   }
 
+  /**
+   * @param string $name
+   * @param mixed $default
+   * @param mixed $value
+   *
+   * @return $this
+   */
   public function addPasswordField($name, $default = null, $value = null)
   {
-    $this->addField(Field::PASSWORD, $name, $default, $value);
+    $this->addField('password', $name, $default, $value);
     return $this;
+  }
+
+  /**
+   * @param string $name
+   *
+   * @throws \Exception
+   */
+  public function getField($name)
+  {
+    if (isset($this->_fields[$name]))
+    {
+      $this->_fields[$name];
+    }
+
+    throw new  \Exception('Field '. $name .' does not exist.');
   }
 
   /**
    * @return string
    */
-  public function open()
+  private function _open()
   {
     return '<form ' . $this->getAttributes() . '>';
   }
@@ -50,7 +97,7 @@ class Form
   /**
    * @return string
    */
-  public function close()
+  private function _close()
   {
     return '</form>';
   }
@@ -60,14 +107,14 @@ class Form
    */
   public function render()
   {
-    $return[] = $this->open();
+    $return[] = $this->_open();
 
     foreach($this->_fields as $field)
     {
       $return[] = $field->render();
     }
 
-    $return[] = $this->close();
+    $return[] = $this->_close();
 
     return implode('', $return);
   }

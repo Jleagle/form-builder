@@ -1,6 +1,7 @@
 <?php
 namespace Jleagle\FormBuilder;
 
+use Jleagle\FormBuilder\Enums\InputTypeEnum;
 use Jleagle\FormBuilder\Traits\HtmlTrait;
 
 class Field
@@ -8,73 +9,85 @@ class Field
 
   use HtmlTrait;
 
-  const TEXT           = 'text';
-  const HIDDEN         = 'hidden';
-  const PASSWORD       = 'password';
-  const RADIO          = 'radio';
-  const CHECKBOX       = 'checkbox';
-  const MULTI_CHECKBOX = 'multi.checkbox';
-  const SELECT         = 'select';
-  const SELECT_MULTI   = 'select.multi';
-  const TEXTAREA       = 'textarea';
-  const FILE           = 'file';
-  const IMAGE          = 'image';
-  const BUTTON         = 'button';
-  const RESET          = 'reset';
-  const SUBMIT         = 'submit';
-  const COLOUR         = 'color';
-  const DATE           = 'date';
-  const DATETIME       = 'datetime';
-  const DATETIME_LOCAL = 'datetime-local';
-  const EMAIL          = 'email';
-  const MONTH          = 'month';
-  const NUMBER         = 'number';
-  const RANGE          = 'range';
-  const SEARCH         = 'search';
-  const TEL            = 'tel';
-  const TIME           = 'time';
-  const URL            = 'url';
-  const WEEK           = 'week';
-
   private $_type;
-  private $_realName = '';
+  private $_name;
+  private $_realName;
+  private $_value;
+  private $_layout;
 
-  public function __constructor()
+  public function __constructor($name)
   {
-    $this->_realName = '';
+    $this->_name = $name;
+    $this->_realName = $this->_makeRealName($name);
   }
 
-  private function _makeRealName($options)
+  public function setValue($value)
   {
-    if (isset($options['name']))
-    {
-      preg_match_all('/\[(.*?)\]/', $options['name'], $matches);
-      if (isset($matches[1]))
-      {
-        return $matches[1];
-      }
-    }
-    return null;
-  }
-
-  public function setType($type)
-  {
-    $reflection = new \ReflectionClass($this);
-    $constants  = $reflection->getConstants();
-    if(!in_array($type, $constants))
-    {
-      throw new \Exception("Invalid form element type set " . $type);
-    }
-    $this->_type = $type;
-
-    $this->_attributes = [];
-
-    return $this;
+    $this->_value= $value;
   }
 
   public function render()
   {
-    return 'x';
+
+    if (!InputTypeEnum::typeExists($this->_type))
+    {
+      // throw exception
+    }
+
+    switch($this->_type)
+    {
+      case 'select':
+        return $this->_renderSelect();
+        break;
+      case 'button':
+      case 'submit':
+        return $this->_renderButton();
+        break;
+      default:
+        return $this->_renderInput();
+    }
   }
 
+  private function _renderInput()
+  {
+    if (!$this->_layout)
+    {
+      $this->_layout = '<div class="form-group">{{field}}</div>';
+    }
+
+    $this->setAttribute('value', $this->_value);
+    $this->addClass('form-control');
+
+    $field = '<input '. $this->getAttributes() .'>';
+    return str_replace('{{field}}', $field, $this->_layout);
+  }
+
+  private function _makeRealName($name)
+  {
+    $parts = explode('.', $name);
+
+    $return = [];
+    foreach($parts as $part)
+    {
+      if(!empty($return))
+      {
+        $part = '[' . $part . ']';
+      }
+      $return[] = $part;
+    }
+    return implode('', $return);
+  }
+
+  private function _makeName($realName)
+  {
+    $name = str_replace('][', '.', $realName);
+    $name = str_replace(']', '', $name);
+    $name = str_replace('[', '.', $name);
+    return $name;
+  }
+
+  public function getRealName()
+  {
+    return $this->_realName;
+  }
 }
