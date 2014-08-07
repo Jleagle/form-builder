@@ -12,60 +12,23 @@ class Field
   private $_type;
   private $_name;
   private $_realName;
-  private $_value;
-  private $_layout;
+  private $_labelName;
+  private $_id;
+  private $_value = null;
+  private $_layout = '{{label}}{{field}}';
+  private $_options = [];
 
-  public function __constructor($name)
+  public function __construct($name)
   {
     $this->_name = $name;
     $this->_realName = $this->_makeRealName($name);
+    $this->_labelName = $this->_makeLabelName($name);
+    $this->_id = $name; // todo
   }
 
-  public function setValue($value)
+  private function _makeRealName()
   {
-    $this->_value= $value;
-  }
-
-  public function render()
-  {
-
-    if (!InputTypeEnum::typeExists($this->_type))
-    {
-      // throw exception
-    }
-
-    switch($this->_type)
-    {
-      case 'select':
-        return $this->_renderSelect();
-        break;
-      case 'button':
-      case 'submit':
-        return $this->_renderButton();
-        break;
-      default:
-        return $this->_renderInput();
-    }
-  }
-
-  private function _renderInput()
-  {
-    if (!$this->_layout)
-    {
-      $this->_layout = '<div class="form-group">{{field}}</div>';
-    }
-
-    $this->setAttribute('value', $this->_value);
-    $this->addClass('form-control');
-
-    $field = '<input '. $this->getAttributes() .'>';
-    return str_replace('{{field}}', $field, $this->_layout);
-  }
-
-  private function _makeRealName($name)
-  {
-    $parts = explode('.', $name);
-
+    $parts = explode('.', $this->_name);
     $return = [];
     foreach($parts as $part)
     {
@@ -78,16 +41,169 @@ class Field
     return implode('', $return);
   }
 
-  private function _makeName($realName)
+  //  private function _makeName()
+  //  {
+  //    $name = str_replace('][', '.', $this->_name);
+  //    $name = str_replace(']', '', $name);
+  //    $name = str_replace('[', '.', $name);
+  //    return $name;
+  //  }
+
+  private function _makeLabelName()
   {
-    $name = str_replace('][', '.', $realName);
-    $name = str_replace(']', '', $name);
-    $name = str_replace('[', '.', $name);
-    return $name;
+    $label = str_replace('.', ' ', $this->_name);
+    $label = ucwords($label);
+    return $label;
   }
 
-  public function getRealName()
+  public function setValue($value)
   {
-    return $this->_realName;
+    $this->_value= $value;
   }
+
+  public function setLabel($label)
+  {
+    $this->_labelName = $label;
+  }
+
+  public function setLayout($layout)
+  {
+    $this->_layout = $layout;
+  }
+
+  public function setType($type)
+  {
+    $this->_type = $type;
+  }
+  public function setOptions($options)
+  {
+    $this->_options = $options;
+  }
+
+  public function setName($name)
+  {
+    $this->setAttribute('name', $name);
+  }
+
+  public function setId($id)
+  {
+    $this->setAttribute('id', $id);
+  }
+
+  public function render()
+  {
+    switch($this->_type)
+    {
+      case InputTypeEnum::SELECT:
+        return $this->_renderSelect();
+        break;
+      case InputTypeEnum::HIDDEN:
+        return $this->_renderHidden();
+        break;
+      case InputTypeEnum::CHECKBOX:
+        return $this->_renderCheckbox();
+        break;
+      case InputTypeEnum::RADIO:
+        return $this->_renderRadio();
+        break;
+      case InputTypeEnum::BUTTON:
+      case InputTypeEnum::SUBMIT:
+      case InputTypeEnum::IMAGE:
+      case InputTypeEnum::RESET:
+        return $this->_renderButton();
+        break;
+      default:
+        return $this->_renderText();
+    }
+  }
+
+  private function _renderSelect()
+  {
+    // todo hydration
+    $field = '<select '. $this->getAttributes() .'>';
+
+    $firstElement = reset($this->_options);
+    if (is_array($firstElement))
+    {
+
+    }
+    else
+    {
+      foreach($this->_options as $k => $v)
+      {
+        $field .= '<option value="'.$k.'">'.$v.'</option>';
+      }
+    }
+
+    $field .= '</select>';
+    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
+
+    $label = $this->_renderLabel();
+    $this->_layout = str_replace('{{label}}', $label, $this->_layout);
+
+    return $this->_layout;
+  }
+
+  private function _renderHidden()
+  {
+    $this->setAttribute('value', $this->_value);
+    $this->setName($this->_realName);
+
+    $field = '<input '. $this->getAttributes() .'>';
+    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
+
+    return $this->_layout;
+  }
+
+  private function _renderCheckbox()
+  {
+  }
+
+  private function _renderRadio()
+  {
+  }
+
+  private function _renderText()
+  {
+    $this->setAttribute('value', $this->_value);
+    $this->setAttribute('placeholder', $this->_labelName);
+    $this->setName($this->_realName);
+
+    $field = '<input '. $this->getAttributes() .'>';
+    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
+
+    $label = $this->_renderLabel();
+    $this->_layout = str_replace('{{label}}', $label, $this->_layout);
+
+    return $this->_layout;
+  }
+
+  private function _renderLabel()
+  {
+    return $this->renderLabelOpen().$this->renderLabelText().$this->renderLabelClose();
+  }
+
+  private function renderLabelOpen()
+  {
+    return '<label for="'.$this->_id.'">';
+  }
+
+  private function renderLabelText()
+  {
+    return $this->_labelName;
+  }
+
+  private function renderLabelClose()
+  {
+    return '</label>';
+  }
+
+  /**
+   * @return string
+   */
+  public function __toString()
+  {
+    return $this->render();
+  }
+
 }
