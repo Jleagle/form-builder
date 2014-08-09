@@ -1,7 +1,7 @@
 {
     "name": "jleagle/form-builder",
-    "keywords": ["form", "builder"],
-    "description": "A form builder",
+    "keywords": ["form", "builder", "validation", "bootstrap"],
+    "description": "A customisable form builder with validation and Bootstrap support.",
     "authors": [
         {
             "name": "James Eagle",
@@ -13,7 +13,5 @@
         "psr-0": {
             "Jleagle\\FormBuilder": "src"
         }
-    },
-    "minimum-stability": "stable",
-    "require": {}
+    }
 }

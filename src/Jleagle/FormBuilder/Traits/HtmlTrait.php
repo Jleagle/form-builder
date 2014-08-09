@@ -1,10 +1,12 @@
 <?php
 namespace Jleagle\FormBuilder\Traits;
 
-
 trait HtmlTrait
 {
 
+  /**
+   * @var string[]
+   */
   private $_attributes = [];
 
   /**
@@ -12,6 +14,7 @@ trait HtmlTrait
    */
   protected function getAttributes()
   {
+
     $return = [];
     foreach($this->_attributes as $attribute => $value)
     {
@@ -25,6 +28,7 @@ trait HtmlTrait
       }
     }
     return implode(' ', $return);
+
   }
 
   /**
@@ -35,17 +39,31 @@ trait HtmlTrait
    */
   public function setAttribute($attribute, $value = '')
   {
-    $this->_attributes[$attribute] = $value;
+
+    if (is_numeric($attribute))
+    {
+      $this->_attributes[$value] = '';
+    }
+    else
+    {
+      $this->_attributes[$attribute] = $value;
+    }
+
     return $this;
 
   }
 
+  /**
+   * @param string[] $attributes
+   */
   public function setAttributes(array $attributes)
   {
+
     foreach($attributes as $k => $v)
     {
       $this->setAttribute($k, $v);
     }
+
   }
 
   /**
@@ -55,6 +73,7 @@ trait HtmlTrait
    */
   private function getAttribute($attribute)
   {
+
     if (isset($this->_attributes[$attribute]))
     {
       return $this->_attributes[$attribute];
@@ -73,12 +92,14 @@ trait HtmlTrait
    */
   public function addClass($class)
   {
+
     $current = $this->getAttribute('class');
     $current = explode(' ', $current);
     $current[] = $class;
     $this->setAttribute('class', implode(' ', $current));
 
     return $this;
+
   }
 
   /**
@@ -98,6 +119,7 @@ trait HtmlTrait
     $this->setAttribute('class', implode(' ', $new));
 
     return $this;
+
   }
 
 } 
