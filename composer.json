@@ -13,5 +13,8 @@
         "psr-0": {
             "Jleagle\\FormBuilder": "src"
         }
+    },
+    "require": {
+      "jleagle/helpers": "dev-master"
     }
 }

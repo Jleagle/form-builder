@@ -2,12 +2,10 @@
 namespace Jleagle\FormBuilder;
 
 use Jleagle\FormBuilder\Enums\InputTypeEnum;
-use Jleagle\FormBuilder\Traits\HtmlTrait;
+use Jleagle\Helpers\Dom;
 
 class Form
 {
-
-  use HtmlTrait;
 
   /**
    * @var Field[]
@@ -19,207 +17,300 @@ class Form
    */
   private $_errors = [];
 
+  /**
+   * @var string
+   */
+  private $_action;
+
+  /**
+   * @var string
+   */
+  private $_enctype = 'application/x-www-form-urlencoded';
+
+  /**
+   * @var string
+   */
+  private $_method = 'post';
 
   /**
    * @param string $action
    */
   public function __construct($action = '')
   {
-    $this->setAttribute('role', 'form');
-    $this->setAttribute('action', $action);
-    $this->setAttribute('method', 'post');
+    $this->_action = $action;
   }
 
   /**
-   * @param string $name
-   * @param string $type
+   * @param string   $name
+   * @param string   $type
    * @param string[] $attributes
-   * @param array $options
+   * @param string[] $options
    *
    * @return $this
    */
   private function _addField($name, $type, $attributes = [], $options = [])
   {
-
-    $field = new Field($name);
-    $field->setType($type);
-    $field->setOptions($options);
+    $field = new Field($name, $type);
     $field->setAttributes($attributes);
-
-    if (is_array($attributes))
-    {
-      foreach($attributes as $k => $v)
-      {
-        $field->setAttribute($k, $v);
-      }
-    }
-
-    switch($type)
-    {
-      case InputTypeEnum::SELECT:
-
-        $field->setLayout('<div class="form-group">{{label}}{{field}}</div>');
-        $field->addClass('form-control');
-
-        break;
-      case InputTypeEnum::HIDDEN:
-
-        $field->setLayout('{{field}}');
-        $field->setAttribute('type', $type);
-
-        break;
-      case InputTypeEnum::CHECKBOX:
-
-        $field->setLayout('<div class="checkbox"><label>{{field}}{{label}}</label></div>');
-        $field->addClass('checkbox');
-        $field->setAttribute('type', $type);
-
-        break;
-      case InputTypeEnum::RADIO:
-
-        $field->setLayout('<div class="radio">{{label-open}}{{field}}{{label-close}}</div>');
-        $field->setAttribute('type', $type);
-
-        break;
-      case InputTypeEnum::BUTTON:
-      case InputTypeEnum::SUBMIT:
-      case InputTypeEnum::IMAGE:
-      case InputTypeEnum::RESET:
-
-        $field->setLayout('{{field}}');
-        $field->addClass('btn btn-default');
-        $field->setAttribute('type', $type);
-        $field->setValue($name);
-
-        break;
-      default:
-
-        $field->setLayout('<div class="form-group">{{label}}{{field}}</div>');
-        $field->setAttribute('type', $type);
-        $field->addClass('form-control');
-
-    }
-
+    $field->setOptions($options);
     $this->_fields[$name] = $field;
     return $this;
-
   }
 
-  // Text
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addColourField($name)
   {
     return $this->_addField($name, InputTypeEnum::TEXT);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addDateField($name)
   {
     return $this->_addField($name, InputTypeEnum::DATE);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addDateTimeField($name)
   {
     return $this->_addField($name, InputTypeEnum::DATETIME);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addDateTimeLocalField($name)
   {
     return $this->_addField($name, InputTypeEnum::DATETIME_LOCAL);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addEmailField($name)
   {
     return $this->_addField($name, InputTypeEnum::EMAIL);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addMonthField($name)
   {
     return $this->_addField($name, InputTypeEnum::MONTH);
   }
 
+  /**
+   * @param string $name
+   * @param int    $min
+   * @param int    $max
+   * @param int    $step
+   *
+   * @return $this
+   */
   public function addNumber($name, $min = null, $max = null, $step = 1)
   {
     return $this->_addField($name, InputTypeEnum::NUMBER, ['min' => $min, 'max' => $max, 'step' => $step]);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addPasswordField($name)
   {
     return $this->_addField($name, InputTypeEnum::PASSWORD);
   }
 
+  /**
+   * @param string $name
+   * @param int    $min
+   * @param int    $max
+   *
+   * @return $this
+   */
   public function addRange($name, $min = null, $max = null)
   {
     return $this->_addField($name, InputTypeEnum::RANGE, ['min' => $min, 'max' => $max]);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addSearchField($name)
   {
     return $this->_addField($name, InputTypeEnum::SEARCH);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addTelField($name)
   {
     return $this->_addField($name, InputTypeEnum::TEL);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addTextField($name)
   {
     return $this->_addField($name, InputTypeEnum::TEXT);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addTimeField($name)
   {
     return $this->_addField($name, InputTypeEnum::TIME);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
+  public function addFileField($name)
+  {
+    $this->_enctype = 'multipart/form-data';
+    return $this->_addField($name, InputTypeEnum::FILE);
+  }
+
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addUrlField($name)
   {
     return $this->_addField($name, InputTypeEnum::URL);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addWeekField($name)
   {
     return $this->_addField($name, InputTypeEnum::WEEK);
   }
 
-  // Buttons
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addButtonField($name)
   {
     return $this->_addField($name, InputTypeEnum::BUTTON);
   }
+
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addSubmitField($name)
   {
     return $this->_addField($name, InputTypeEnum::SUBMIT);
   }
+
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addImageField($name)
   {
     return $this->_addField($name, InputTypeEnum::IMAGE);
   }
+
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addResetField($name)
   {
     return $this->_addField($name, InputTypeEnum::RESET);
   }
 
-  // Other
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addHiddenField($name)
   {
     return $this->_addField($name, InputTypeEnum::HIDDEN);
   }
 
+  /**
+   * @param string $name
+   *
+   * @return $this
+   */
   public function addCheckBox($name)
   {
     return $this->_addField($name, InputTypeEnum::CHECKBOX);
   }
 
+  /**
+   * @param string   $name
+   * @param string[] $options
+   *
+   * @return $this
+   */
   public function addSelectField($name, $options)
   {
     return $this->_addField($name, InputTypeEnum::SELECT, [], $options);
   }
 
+  /**
+   * @param string   $name
+   * @param string[] $options
+   *
+   * @return $this
+   */
   public function addMultiSelectField($name, $options)
   {
     return $this->_addField($name, InputTypeEnum::SELECT, ['multiple'], $options);
   }
 
+  /**
+   * @param string   $name
+   * @param string[] $options
+   *
+   * @return $this
+   */
   public function addRadio($name, $options)
   {
     return $this->_addField($name, InputTypeEnum::RADIO, [], $options);
@@ -229,35 +320,32 @@ class Form
    * @param string $name
    *
    * @return Field
-   *
    * @throws \Exception
    */
   public function getField($name)
   {
-
     if (isset($this->_fields[$name]))
     {
       return $this->_fields[$name];
     }
-
     throw new \Exception('Field '. $name .' does not exist.');
-
   }
 
   /**
-   * @return string[]
+   * @return Field[]
    */
   public function getFields()
   {
-    return array_keys($this->_fields);
+    return $this->_fields;
   }
 
   /**
-   * @param $hydration
+   * @param array $hydration
+   *
+   * @throws \Exception
    */
   public function hydrate($hydration)
   {
-
     foreach($hydration as $k => $v)
     {
       if ($this->fieldExists($k))
@@ -265,11 +353,10 @@ class Form
         $this->getField($k)->setValue($v);
       }
     }
-
   }
 
   /**
-   * @param $field
+   * @param string $field
    *
    * @return bool
    */
@@ -279,11 +366,10 @@ class Form
   }
 
   /**
-   * @return string[][]
+   * @return \string[][]
    */
   private function validate()
   {
-
     foreach($this->_fields as $field)
     {
       $errors = $field->getErrors();
@@ -293,9 +379,7 @@ class Form
         $this->_errors[] = $errors;
       }
     }
-
     return $this->_errors;
-
   }
 
   /**
@@ -303,64 +387,42 @@ class Form
    */
   public function validates()
   {
-
     $this->validate();
     return !(bool)$this->_errors;
-
   }
 
   /**
-   * @return string[][]
+   * @return \string[][]
    */
   public function getErrors()
   {
-
     $this->validate();
     return $this->_errors;
-
   }
 
   /**
-   * @return string
-   */
-  private function _open()
-  {
-    return '<form ' . $this->getAttributes() . '>';
-  }
-
-  /**
-   * @return string
-   */
-  private function _close()
-  {
-    return '</form>';
-  }
-
-  /**
-   * @param null $field
+   * @param string|null $field
    *
-   * @return string|void
+   * @return string
    * @throws \Exception
    */
   public function render($field = null)
   {
-
     if ($field)
     {
       return $this->getField($field);
     }
-
-    $return[] = $this->_open();
-
+    $children = [];
     foreach($this->_fields as $field)
     {
-      $return[] = $field->render();
+      $children[] = $field->render();
     }
-
-    $return[] = $this->_close();
-
-    return implode('', $return);
-
+    $return = new Dom(
+      'form',
+      ['action' => $this->_action, 'enctype' => $this->_enctype, 'method' => $this->_method],
+      $children
+    );
+    return (string)$return;
   }
 
   /**
@@ -369,6 +431,28 @@ class Form
   public function __toString()
   {
     return $this->render();
+  }
+
+  /**
+   * @param $enctype
+   *
+   * @return $this
+   */
+  public function setEnctype($enctype)
+  {
+    $this->_enctype = $enctype;
+    return $this;
+  }
+
+  /**
+   * @param $method
+   *
+   * @return $this
+   */
+  public function setMethod($method)
+  {
+    $this->_method = $method;
+    return $this;
   }
 
 }

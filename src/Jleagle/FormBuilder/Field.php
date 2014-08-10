@@ -3,48 +3,76 @@ namespace Jleagle\FormBuilder;
 
 use Jleagle\FormBuilder\Enums\InputTypeEnum;
 use Jleagle\FormBuilder\Enums\ValidatorEnum;
-use Jleagle\FormBuilder\Traits\HtmlTrait;
+use Jleagle\Helpers\Dom;
 
 class Field
 {
 
-  use HtmlTrait;
-
+  /**
+   * @var string
+   */
   private $_name;
-  private $_realName;
-  private $_labelName;
+
+  /**
+   * @var string
+   */
+  private $_label;
+
+  /**
+   * @var string
+   */
   private $_id;
-  private $_type = 'text';
+
+  /**
+   * @var string
+   */
+  private $_type;
+
+  /**
+   * @var mixed
+   */
   private $_value = null;
-  private $_layout = '{{label}}{{field}}';
+
+  /**
+   * @var string[]
+   */
   private $_options = [];
 
-  // Validation
+  /**
+   * @var string[]
+   */
+  private $_attributes = [];
+
+  /**
+   * @var array
+   */
+
   private $_validators = [];
+  /**
+   * @var string[]
+   */
   private $_errors = [];
 
   /**
-   * @param $name
+   * @param string $name
+   * @param string $type
    */
-  public function __construct($name)
+  public function __construct($name, $type)
   {
-
-    $this->_name = $name;
-    $this->_realName = $this->_makeRealName($name);
-    $this->_labelName = $this->_makeLabelName($name);
-    $this->_id = $this->_makeId();
-
-    $this->setAttribute('id', $this->_id);
-
+    $this->_type  = $type;
+    $this->_name  = $this->_makeName($name);
+    $this->_label = $this->_makeLabel($name);
+    $this->_id    = $this->_makeId($name);
   }
 
   /**
-   * @return string
+   * @param $name
+   *
+   * @return string string
    */
-  private function _makeRealName()
+  private function _makeName($name)
   {
-
-    $parts = explode('.', $this->_name);
+    $parts = explode('.', $name);
     $return = [];
     foreach($parts as $part)
     {
@@ -55,310 +83,218 @@ class Field
       $return[] = $part;
     }
     return implode('', $return);
-
   }
 
   /**
-   * @return string
+   * @param string $name
+   *
+   * @return mixed|string
    */
-  private function _makeLabelName()
+  private function _makeLabel($name)
   {
-
-    $label = str_replace('.', ' ', $this->_name);
+    $label = str_replace('.', ' ', $name);
     $label = ucwords($label);
     return $label;
-
   }
 
   /**
+   * @param string $name
+   *
    * @return string
    */
-  private function _makeId()
+  private function _makeId($name)
   {
-
-    $id = str_replace('.', '-', $this->_name);
+    $id = str_replace('.', '-', $name);
     $id = strtolower($id);
     return rand(1111, 9999).'-'.$id;
-
   }
 
   /**
-   * @param $value
-   *
-   * @return $this
-   */
-  public function setValue($value)
-  {
-
-    $this->_value= $value;
-    return $this;
-
-  }
-
-  /**
-   * @param $label
-   *
-   * @return $this
-   */
-  public function setLabel($label)
-  {
-
-    $this->_labelName = $label;
-    return $this;
-
-  }
-
-  /**
-   * @param $layout
-   *
-   * @return $this
-   */
-  public function setLayout($layout)
-  {
-
-    $this->_layout = $layout;
-    return $this;
-
-  }
-
-  /**
-   * @param $type
-   *
-   * @return $this
-   */
-  public function setType($type)
-  {
-
-    $this->_type = $type;
-    return $this;
-
-  }
-
-  /**
-   * @param $options
-   *
-   * @return $this
-   */
-  public function setOptions($options)
-  {
-
-    $this->_options = $options;
-    return $this;
-
-  }
-
-  /**
-   * @return string
-   */
-  public function getLabel()
-  {
-    return $this->_labelName;
-  }
-
-  /**
-   * @return string
+   * @return Dom
    */
   public function render()
   {
-
     switch($this->_type)
     {
       case InputTypeEnum::SELECT:
         return $this->_renderSelect();
         break;
-      case InputTypeEnum::HIDDEN:
-        return $this->_renderHidden();
+      case InputTypeEnum::RADIO:
+        return $this->_renderRadio();
         break;
       case InputTypeEnum::CHECKBOX:
         return $this->_renderCheckbox();
         break;
-      case InputTypeEnum::FILE:
-        return $this->_renderFile();
-        break;
       case InputTypeEnum::TEXTAREA:
-        return $this->_renderTextArea();
+        return $this->_renderTextarea();
         break;
-      case InputTypeEnum::RADIO:
-        return $this->_renderRadio();
+      case InputTypeEnum::HIDDEN:
+        return $this->_renderHidden();
         break;
       case InputTypeEnum::BUTTON:
-      case InputTypeEnum::SUBMIT:
       case InputTypeEnum::IMAGE:
       case InputTypeEnum::RESET:
+      case InputTypeEnum::SUBMIT:
         return $this->_renderButton();
         break;
       default:
-        return $this->_renderText();
+        return new Dom(null, [], [$this->_renderDefault(), $this->_renderDataList()]);
     }
-
   }
 
   /**
-   * @return string
+   * @return Dom
+   */
+  public  function renderLabel()
+  {
+    return new Dom('label', ['for' => $this->_id], [], $this->_label);
+  }
+
+  /**
+   * @return array
+   */
+  private function _getDefaultAttributes()
+  {
+    $attributes = [];
+    $attributes['id'] = $this->_id;
+    $attributes['name'] = $this->_name;
+    return array_merge($attributes, $this->_attributes);
+  }
+
+  /**
+   * @return Dom
+   */
+  private function _renderDataList()
+  {
+    if ($this->_options)
+    {
+      $options = [];
+      foreach($this->_options as $option)
+      {
+        $options[] = new Dom('option', ['value' => $option]);
+      }
+      return new Dom('datalist', ['id' => $this->_id], $options);
+    }
+    return new Dom();
+  }
+
+  /**
+   * @return Dom
    */
   private function _renderSelect()
   {
-
+    $attributes = $this->_getDefaultAttributes();
     if (is_array($this->_value))
     {
-      $this->setAttribute('multiple');
+      $attributes[] = 'multiple';
     }
-
-    $field = '<select '. $this->getAttributes() .'>';
-
     $firstElement = reset($this->_options);
     if (is_array($firstElement))
     {
+      $optgroups = [];
       foreach($this->_options as $group => $options)
       {
-        $field .= '<optgroup label="'.$group.'">';
-        foreach($options as $k => $v)
-        {
-          $selected = ((is_array($this->_value) && in_array($k, $this->_value)) || $k == $this->_value) ? ' selected' : '';
-          $field .= '<option value="'.$k.'"'.$selected.'>'.$v.'</option>';
-        }
-        $field .= '</optgroup>';
+        $selectOptions = $this->_renderSelectOptions($options);
+        $optgroups[] = new Dom('optgroup', ['label' => $group], $selectOptions);
       }
+      return new Dom('select', $attributes, $optgroups);
     }
     else
     {
-      foreach($this->_options as $k => $v)
-      {
-        $selected = ($k == $this->_value) ? ' selected' : '';
-        $field .= '<option value="'.$k.'"'.$selected.'>'.$v.'</option>';
-      }
+      $selectOptions = $this->_renderSelectOptions($this->_options);
+      return new Dom('select', $attributes, $selectOptions);
     }
-
-    $field .= '</select>';
-    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
-
-    $label = $this->_renderLabel();
-    $this->_layout = str_replace('{{label}}', $label, $this->_layout);
-
-    return $this->_layout;
-
   }
 
   /**
-   * @return string
+   * @param Dom[] $options
+   *
+   * @return array
    */
-  private function _renderHidden()
+  private function _renderSelectOptions($options)
   {
-
-    $this->setAttribute('value', $this->_value);
-    $this->setAttribute('name', $this->_realName);
-
-    $field = '<input '. $this->getAttributes() .'>';
-    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
-
-    return $this->_layout;
-
-  }
-
-  /**
-   * @return string
-   */
-  private function _renderCheckbox()
-  {
-
-    $this->setAttribute('value', $this->_value);
-    $this->setAttribute('name', $this->_realName);
-
-    // Hydrate
-    if ($this->_value)
+    $selectOptions = [];
+    foreach($options as $k => $v)
     {
-      $this->setAttribute('checked');
+      $optionAttributes = ['value' => $k];
+      if ((is_array($this->_value) && in_array($k, $this->_value)) || $k == $this->_value)
+      {
+        $optionAttributes[] = 'selected';
+      }
+      $selectOptions[] = new Dom('option', $optionAttributes, [], $v);
     }
-
-    $field = '<input '. $this->getAttributes() .'>';
-    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
-
-    $label = $this->_renderLabel();
-    $this->_layout = str_replace('{{label}}', $label, $this->_layout);
-
-    return $this->_layout;
+    return $selectOptions;
   }
 
   /**
-   * @return string
+   * @return Dom
    */
   private function _renderRadio()
   {
     // todo
+    $attributes = $this->_getDefaultAttributes();
+
+    return new Dom();
   }
 
   /**
-   * @return string
+   * @return Dom
    */
-  private function _renderFile()
+  private function _renderCheckbox()
   {
-    // todo
+    $attributes = $this->_getDefaultAttributes();
+    $attributes['value'] = $this->_value;
+    $attributes['type'] = $this->_type;
+    if ($this->_value)
+    {
+      $attributes[] = 'checked';
+    }
+    return new Dom('input', $attributes);
   }
 
   /**
-   * @return string
+   * @return Dom
+   */
+  private function _renderTextarea()
+  {
+    $attributes = $this->_getDefaultAttributes();
+    $attributes['placeholder'] = $this->_label;
+    return new Dom('textarea', $attributes, [], $this->_value);
+  }
+
+  /**
+   * @return Dom
+   */
+  private function _renderHidden()
+  {
+    $attributes = $this->_getDefaultAttributes();
+    $attributes['value'] = $this->_value;
+    $attributes['type'] = $this->_type;
+    return new Dom('input', $attributes);
+  }
+
+  /**
+   * @return Dom
    */
   private function _renderButton()
   {
-
-    $this->setAttribute('value', $this->_value);
-
-    $field = '<input '. $this->getAttributes() .' />';
-    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
-    return $this->_layout;
-
+    $attributes = $this->_getDefaultAttributes();
+    $attributes['type'] = $this->_type;
+    $attributes['value'] = $this->_label;
+    $attributes['placeholder'] = $this->_label;
+    return new Dom('input', $attributes);
   }
 
   /**
-   * @return string
+   * @return Dom
    */
-  private function _renderText()
+  private function _renderDefault()
   {
-
-    $this->setAttribute('value', $this->_value);
-    $this->setAttribute('placeholder', $this->_labelName);
-    $this->setAttribute('name', $this->_realName);
-
-    $field = '<input '. $this->getAttributes() .'>';
-    $this->_layout = str_replace('{{field}}', $field, $this->_layout);
-
-    $label = $this->_renderLabel();
-    $this->_layout = str_replace('{{label}}', $label, $this->_layout);
-
-    return $this->_layout;
-
-  }
-
-  /**
-   * @return string
-   */
-  private function _renderLabel()
-  {
-    return $this->renderLabelOpen().$this->renderLabelText().$this->renderLabelClose();
-  }
-
-  /**
-   * @return string
-   */
-  private function renderLabelOpen()
-  {
-    return '<label for="'.$this->_id.'">';
-  }
-
-  /**
-   * @return string
-   */
-  private function renderLabelText()
-  {
-    return $this->_labelName;
-  }
-
-  /**
-   * @return string
-   */
-  private function renderLabelClose()
-  {
-    return '</label>';
+    $attributes = $this->_getDefaultAttributes();
+    $attributes['type'] = $this->_type;
+    $attributes['value'] = $this->_value;
+    $attributes['placeholder'] = $this->_label;
+    return new Dom('input', $attributes);
   }
 
   /**
@@ -367,23 +303,19 @@ class Field
    * @param mixed $param2
    *
    * @return $this
+   * @throws \Exception
    */
   public function addValidator($validatorEnum, $param1 = null, $param2 = null)
   {
-
     $params = func_get_args();
     $validator = array_shift($params);
-
     if(!ValidatorEnum::constantExists($validator) || !is_callable($validator))
     {
-      // throw error.
+      throw new \Exception('Validator not found, please use the Enum.');
     }
-
     $this->_validators[$validatorEnum] = [$validator, $params];
     return $this;
-
   }
-
 
   /**
    * @param string $validatorEnum
@@ -392,26 +324,23 @@ class Field
    */
   public function removeValidator($validatorEnum)
   {
-
     unset($this->_validators[$validatorEnum]);
     return $this;
-
   }
 
   /**
-   * @param string $validator
-   * @param string $alias
+   * @param string      $validator
+   * @param string|null $alias
    *
    * @return $this
+   * @throws \Exception
    */
   public function addCustomValidator($validator, $alias = null)
   {
-
     if(!is_callable($validator))
     {
-      // throw error.
+      throw new \Exception('A custom validator must be an anonymous function.');
     }
-
     if ($alias)
     {
       $this->_validators[$alias] = [$validator];
@@ -420,41 +349,32 @@ class Field
     {
       $this->_validators[] = [$validator];
     }
-
     return $this;
-
   }
 
   /**
-   * @param $alias
+   * @param string $alias
    *
    * @return $this
    */
   public function removeCustomValidator($alias)
   {
-
     unset($this->_validators[$alias]);
     return $this;
-
   }
-
 
   /**
    * @return string[]
    */
   private function validate()
   {
-
     foreach($this->_validators as $validator)
     {
-
       if (!isset($validator[1]))
       {
         $validator[1] = [];
       }
-
       array_unshift($validator[1], $this->_value);
-
       try
       {
         call_user_func_array($validator[0], $validator[1]);
@@ -463,11 +383,8 @@ class Field
       {
         $this->_errors[] = $e->getMessage();
       }
-
     }
-
     return $this->_errors;
-
   }
 
   /**
@@ -475,10 +392,8 @@ class Field
    */
   public function validates()
   {
-
     $this->validate();
     return !(bool)$this->_errors;
-
   }
 
   /**
@@ -486,10 +401,8 @@ class Field
    */
   public function getErrors()
   {
-
     $this->validate();
     return $this->_errors;
-
   }
 
   /**
@@ -497,7 +410,67 @@ class Field
    */
   public function __toString()
   {
-    return $this->render();
+    return (string)$this->render();
+  }
+
+  /**
+   * @return string
+   */
+  public function getLabel()
+  {
+    return $this->_label;
+  }
+
+  /**
+   * @param mixed $value
+   *
+   * @return $this
+   */
+  public function setValue($value)
+  {
+    $this->_value= $value;
+    return $this;
+  }
+
+  /**
+   * @param string $label
+   *
+   * @return $this
+   */
+  public function setLabel($label)
+  {
+    $this->_label = $label;
+    return $this;
+  }
+
+  /**
+   * @param string $type
+   *
+   * @return $this
+   */
+  public function setType($type)
+  {
+    $this->_type = $type;
+    return $this;
+  }
+
+  /**
+   * @param string[] $options
+   *
+   * @return $this
+   */
+  public function setOptions($options)
+  {
+    $this->_options = $options;
+    return $this;
+  }
+
+  /**
+   * @param string[] $attributes
+   */
+  public function setAttributes($attributes)
+  {
+    $this->_attributes = $attributes;
   }
 
 }
