@@ -10,8 +10,8 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "Jleagle\\FormBuilder": "src"
+        "psr-4": {
+            "Jleagle\\FormBuilder\\": "src"
         }
     },
     "require": {
