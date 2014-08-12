@@ -32,6 +32,10 @@ class Form
    */
   private $_method = 'post';
 
+  private $_attributes = [
+
+  ];
+
   /**
    * @param string $action
    */
@@ -410,12 +414,13 @@ class Form
   {
     if ($field)
     {
-      return $this->getField($field);
+      $field = $this->getField($field);
+      return (string)$this->renderField($field);
     }
     $children = [];
     foreach($this->_fields as $field)
     {
-      $children[] = $field->render();
+      $children[] = $this->renderField($field);
     }
     $return = new Dom(
       'form',
@@ -423,6 +428,29 @@ class Form
       $children
     );
     return (string)$return;
+  }
+
+  /**
+   *
+   * This method only exists to override in a template class.
+   *
+   * @param Field $field
+   *
+   * @return Dom
+   */
+  protected function renderField(Field $field)
+  {
+    return $field->render();
+  }
+
+  /**
+   *
+   * This method only exists to override in a template class.
+   *
+   */
+  protected function renderForm()
+  {
+    // todo
   }
 
   /**

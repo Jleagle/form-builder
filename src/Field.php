@@ -34,7 +34,7 @@ class Field
   private $_value = null;
 
   /**
-   * @var string[]
+   * @var string[]|string[][]
    */
   private $_options = [];
 
@@ -138,7 +138,8 @@ class Field
         return $this->_renderButton();
         break;
       default:
-        return new Dom(null, [], [$this->_renderDefault(), $this->_renderDataList()]);
+        // return new Dom('div', [], [$this->_renderDefault(), $this->_renderDataList()]);
+        return $this->_renderDefault();
     }
   }
 
@@ -169,9 +170,9 @@ class Field
     if ($this->_options)
     {
       $options = [];
-      foreach($this->_options as $option)
+      foreach($this->_options as $k => $v)
       {
-        $options[] = new Dom('option', ['value' => $option]);
+        $options[] = new Dom('option', ['value' => $k, 'label' => $v]);
       }
       return new Dom('datalist', ['id' => $this->_id], $options);
     }
@@ -207,9 +208,9 @@ class Field
   }
 
   /**
-   * @param Dom[] $options
+   * @param string[] $options
    *
-   * @return array
+   * @return Dom[]
    */
   private function _renderSelectOptions($options)
   {
@@ -419,6 +420,14 @@ class Field
   public function getLabel()
   {
     return $this->_label;
+  }
+
+  /**
+   * @return string
+   */
+  public function getType()
+  {
+    return $this->_type;
   }
 
   /**
