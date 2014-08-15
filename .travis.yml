@@ -10,3 +10,10 @@ php:
 before_install:
   - composer self-update
   - composer install --no-interaction --prefer-source
+
+script:
+ - mkdir -p build/logs
+ - phpunit --coverage-clover build/logs/clover.xml
+
+matrix:
+  fast_finish: true
