@@ -2,7 +2,7 @@
 namespace Jleagle\FormBuilder;
 
 use Jleagle\FormBuilder\Enums\InputTypeEnum;
-use Jleagle\Helpers\Dom;
+use Jleagle\Dom;
 
 class Form
 {
@@ -32,6 +32,9 @@ class Form
    */
   private $_method = 'post';
 
+  /**
+   * @var string[]
+   */
   private $_attributes = [
 
   ];
@@ -321,29 +324,6 @@ class Form
   }
 
   /**
-   * @param string $name
-   *
-   * @return Field
-   * @throws \Exception
-   */
-  public function getField($name)
-  {
-    if (isset($this->_fields[$name]))
-    {
-      return $this->_fields[$name];
-    }
-    throw new \Exception('Field '. $name .' does not exist.');
-  }
-
-  /**
-   * @return Field[]
-   */
-  public function getFields()
-  {
-    return $this->_fields;
-  }
-
-  /**
    * @param array $hydration
    *
    * @throws \Exception
@@ -412,22 +392,20 @@ class Form
    */
   public function render($field = null)
   {
+    // Render single field
     if ($field)
     {
       $field = $this->getField($field);
       return (string)$this->renderField($field);
     }
+
+    // Render whole form
     $children = [];
     foreach($this->_fields as $field)
     {
       $children[] = $this->renderField($field);
     }
-    $return = new Dom(
-      'form',
-      ['action' => $this->_action, 'enctype' => $this->_enctype, 'method' => $this->_method],
-      $children
-    );
-    return (string)$return;
+    return (string)$this->renderForm($children);
   }
 
   /**
@@ -447,10 +425,17 @@ class Form
    *
    * This method only exists to override in a template class.
    *
+   * @param array $children
+   *
+   * @return Dom
    */
-  protected function renderForm()
+  protected function renderForm(array $children)
   {
-    // todo
+    return new Dom(
+      'form',
+      ['action' => $this->_action, 'enctype' => $this->_enctype, 'method' => $this->_method],
+      $children
+    );
   }
 
   /**
@@ -459,6 +444,48 @@ class Form
   public function __toString()
   {
     return $this->render();
+  }
+
+  /**
+   * @param string $name
+   *
+   * @return Field
+   * @throws \Exception
+   */
+  public function getField($name)
+  {
+    if (isset($this->_fields[$name]))
+    {
+      return $this->_fields[$name];
+    }
+    throw new \Exception('Field '. $name .' does not exist.');
+  }
+
+  /**
+   * @return Field[]
+   */
+  public function getFields()
+  {
+    return $this->_fields;
+  }
+
+  /**
+   * @return string[]
+   */
+  public function getAttributes()
+  {
+    return $this->_attributes;
+  }
+
+  /**
+   * @param $attributes
+   *
+   * @return $this
+   */
+  public function setAttributes($attributes)
+  {
+    $this->_attributes = $attributes;
+    return $this;
   }
 
   /**

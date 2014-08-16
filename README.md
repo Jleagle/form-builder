@@ -17,3 +17,4 @@ A customisable form builder with validation and Bootstrap support.
 - [ ] Captcha support
 - [ ] Validation
 - [ ] Custom validation
+- [ ] CSRF tokens

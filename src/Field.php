@@ -3,7 +3,7 @@ namespace Jleagle\FormBuilder;
 
 use Jleagle\FormBuilder\Enums\InputTypeEnum;
 use Jleagle\FormBuilder\Enums\ValidatorEnum;
-use Jleagle\Helpers\Dom;
+use Jleagle\Dom;
 
 class Field
 {

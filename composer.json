@@ -1,20 +1,23 @@
 {
-    "name": "jleagle/form-builder",
-    "keywords": ["form", "builder", "validation", "bootstrap"],
-    "description": "A customisable form builder with validation and Bootstrap support.",
-    "authors": [
-        {
-            "name": "James Eagle",
-            "email": "jimeagle@gmail.com",
-            "homepage": "http://jimeagle.com"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "Jleagle\\FormBuilder\\": "src"
-        }
-    },
-    "require": {
-      "jleagle/helpers": "dev-master"
+  "name": "jleagle/form-builder",
+  "keywords": ["form", "builder", "validation", "bootstrap"],
+  "description": "A customisable form builder with validation and Bootstrap support.",
+  "authors": [
+    {
+      "name": "James Eagle",
+      "email": "jimeagle@gmail.com",
+      "homepage": "http://jimeagle.com"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+        "Jleagle\\FormBuilder\\": "src"
+    }
+  },
+  "require": {
+    "jleagle/html-builder": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "4.1.*"
+  }
 }

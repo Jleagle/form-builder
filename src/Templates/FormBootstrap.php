@@ -3,7 +3,7 @@ namespace Jleagle\FormBuilder\Templates;
 
 use Jleagle\FormBuilder\Field;
 use Jleagle\FormBuilder\Form;
-use Jleagle\Helpers\Dom;
+use Jleagle\Dom;
 
 class FormBootstrap extends Form
 {
