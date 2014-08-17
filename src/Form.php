@@ -51,14 +51,17 @@ class Form
    */
   private function _addDataList($name, $options)
   {
-    $field = $this->getField($name);
-    $fieldId = $field->getId();
-    $dataListId = $fieldId.'_datalist';
-    $field->setAttributes(['list' => $dataListId]);
-    $dataList = new Field($name, InputTypeEnum::DATALIST);
-    $dataList->setOptions($options);
-    $dataList->setId($dataListId);
-    $this->_datalists[$name] = $dataList;
+    if ($options)
+    {
+      $field      = $this->getField($name);
+      $fieldId    = $field->getId();
+      $dataListId = $fieldId . '_datalist';
+      $field->setAttributes(['list' => $dataListId]);
+      $dataList = new Field($name, InputTypeEnum::DATALIST);
+      $dataList->setOptions($options);
+      $dataList->setId($dataListId);
+      $this->_datalists[$name] = $dataList;
+    }
     return $this;
   }
 
@@ -480,9 +483,9 @@ class Form
   protected function _renderForm(array $children)
   {
     return new Dom(
-    'form',
-    $this->getAttributes(),
-    $children
+      'form',
+      $this->getAttributes(),
+      $children
     );
   }
 

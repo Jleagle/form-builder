@@ -32,4 +32,23 @@ class FormBootstrap extends Form
 
   }
 
+  /**
+   * @param Dom[] $children
+   *
+   * @return Dom
+   */
+  protected function _renderForm(array $children)
+  {
+
+    $attributes = $this->getAttributes();
+    $attributes['role'] = 'form';
+
+    return new Dom(
+      'form',
+      $attributes,
+      $children
+    );
+
+  }
+
 }
