@@ -13,7 +13,7 @@ class FormFoundation extends Form
    *
    * @return Dom
    */
-  public function renderField(Field $field)
+  public function _renderField(Field $field)
   {
     $fieldDom = $field->render();
     $labelDom = $field->renderLabel();

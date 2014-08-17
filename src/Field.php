@@ -46,8 +46,8 @@ class Field
   /**
    * @var array
    */
-
   private $_validators = [];
+
   /**
    * @var string[]
    */
@@ -63,6 +63,11 @@ class Field
     $this->_name  = $this->_makeName($name);
     $this->_label = $this->_makeLabel($name);
     $this->_id    = $this->_makeId($name);
+
+    $this->setAttributes([
+      'id'   => $this->_id,
+      'name' => $this->_name
+    ]);
   }
 
   /**
@@ -92,7 +97,8 @@ class Field
    */
   private function _makeLabel($name)
   {
-    $label = str_replace('.', ' ', $name);
+    $label = explode('.', $name);
+    $label = end($label);
     $label = ucwords($label);
     return $label;
   }
@@ -119,6 +125,9 @@ class Field
       case InputTypeEnum::SELECT:
         return $this->_renderSelect();
         break;
+      case InputTypeEnum::DATALIST:
+        return $this->_renderDataList();
+        break;
       case InputTypeEnum::RADIO:
         return $this->_renderRadio();
         break;
@@ -138,7 +147,6 @@ class Field
         return $this->_renderButton();
         break;
       default:
-        // return new Dom('div', [], [$this->_renderDefault(), $this->_renderDataList()]);
         return $this->_renderDefault();
     }
   }
@@ -152,14 +160,11 @@ class Field
   }
 
   /**
-   * @return array
+   * @return string[]
    */
-  private function _getDefaultAttributes()
+  private function _getAttributes()
   {
-    $attributes = [];
-    $attributes['id'] = $this->_id;
-    $attributes['name'] = $this->_name;
-    return array_merge($attributes, $this->_attributes);
+    return $this->_attributes;
   }
 
   /**
@@ -184,7 +189,7 @@ class Field
    */
   private function _renderSelect()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     if (is_array($this->_value))
     {
       $attributes[] = 'multiple';
@@ -233,7 +238,7 @@ class Field
   private function _renderRadio()
   {
     // todo
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
 
     return new Dom();
   }
@@ -243,7 +248,7 @@ class Field
    */
   private function _renderCheckbox()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     $attributes['value'] = $this->_value;
     $attributes['type'] = $this->_type;
     if ($this->_value)
@@ -258,7 +263,7 @@ class Field
    */
   private function _renderTextarea()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     $attributes['placeholder'] = $this->_label;
     return new Dom('textarea', $attributes, [], $this->_value);
   }
@@ -268,7 +273,7 @@ class Field
    */
   private function _renderHidden()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     $attributes['value'] = $this->_value;
     $attributes['type'] = $this->_type;
     return new Dom('input', $attributes);
@@ -279,7 +284,7 @@ class Field
    */
   private function _renderButton()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     $attributes['type'] = $this->_type;
     $attributes['value'] = $this->_label;
     $attributes['placeholder'] = $this->_label;
@@ -291,7 +296,7 @@ class Field
    */
   private function _renderDefault()
   {
-    $attributes = $this->_getDefaultAttributes();
+    $attributes = $this->_getAttributes();
     $attributes['type'] = $this->_type;
     $attributes['value'] = $this->_value;
     $attributes['placeholder'] = $this->_label;
@@ -417,6 +422,22 @@ class Field
   /**
    * @return string
    */
+  public function getId()
+  {
+    return $this->_id;
+  }
+
+  /**
+   * @return string
+   */
+  public function getName()
+  {
+    return $this->_name;
+  }
+
+  /**
+   * @return string
+   */
   public function getLabel()
   {
     return $this->_label;
@@ -428,6 +449,28 @@ class Field
   public function getType()
   {
     return $this->_type;
+  }
+
+  /**
+   * @param $id
+   *
+   * @return $this
+   */
+  public function setId($id)
+  {
+    $this->_id = $id;
+    return $this;
+  }
+
+  /**
+   * @param $name
+   *
+   * @return $this
+   */
+  public function setName($name)
+  {
+    $this->_name = $name;
+    return $this;
   }
 
   /**
@@ -476,10 +519,25 @@ class Field
 
   /**
    * @param string[] $attributes
+   *
+   * @return $this
    */
-  public function setAttributes($attributes)
+  public function setAttributes(array $attributes)
   {
-    $this->_attributes = $attributes;
+    foreach($attributes as $key => $attribute)
+    {
+      if (is_null($attribute))
+      {
+        // Delete attribute
+        unset($this->_attributes[$key]);
+      }
+      else
+      {
+        // Add attribute
+        $this->_attributes[$key] = $attribute;
+      }
+    }
+    return $this;
   }
 
 }

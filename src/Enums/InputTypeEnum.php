@@ -6,6 +6,7 @@ class InputTypeEnum extends BaseEnum
   const BUTTON         = 'button';
   const CHECKBOX       = 'checkbox';
   const COLOUR         = 'color';
+  const DATALIST       = 'datalist';
   const DATE           = 'date';
   const DATETIME       = 'datetime';
   const DATETIME_LOCAL = 'datetime-local';
