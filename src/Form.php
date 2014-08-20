@@ -379,6 +379,22 @@ class Form
   }
 
   /**
+   * @param string $name
+   *
+   * @return $this
+   */
+  public function addTextArea($name)
+  {
+    $this->_addField($name, InputTypeEnum::TEXTAREA);
+    return $this;
+  }
+
+  public function addCaptcha()
+  {
+    // todo
+  }
+
+  /**
    * @param array $hydration
    *
    * @throws \Exception
@@ -442,7 +458,6 @@ class Form
     $this->validate();
     return $this->_errors;
   }
-
 
   /**
    * @param string $fieldName

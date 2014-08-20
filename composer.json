@@ -15,7 +15,8 @@
     }
   },
   "require": {
-    "jleagle/html-builder": "dev-master"
+    "jleagle/html-builder": "dev-master",
+    "mews/captcha": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "4.1.*"
