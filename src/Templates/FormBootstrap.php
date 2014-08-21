@@ -1,6 +1,7 @@
 <?php
 namespace Jleagle\FormBuilder\Templates;
 
+use Jleagle\FormBuilder\Enums\InputTypeEnum;
 use Jleagle\FormBuilder\Field;
 use Jleagle\FormBuilder\Form;
 use Jleagle\Dom;
@@ -22,7 +23,15 @@ class FormBootstrap extends Form
     switch ($type)
     {
 
-      case 'select':
+      case InputTypeEnum::RESET:
+      case InputTypeEnum::SUBMIT:
+      case InputTypeEnum::BUTTON:
+      case InputTypeEnum::IMAGE:
+
+        return $fieldDom->addClass('btn btn-primary');
+
+        break;
+      case InputTypeEnum::SELECT:
       default:
 
         $fieldDom->setAttribute('class', 'form-control');
